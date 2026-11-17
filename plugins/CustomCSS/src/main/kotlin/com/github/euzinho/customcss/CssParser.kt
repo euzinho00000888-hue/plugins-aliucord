@@ -40,7 +40,7 @@ object CssParser {
     )
 
     private val PART = Regex("^(\\*|[A-Za-z_][\\w-]*)?((?:[#.][\\w-]+)*)$")
-    private val TOKEN = Regex("([#.])([\\w-]+)")
+    private val TOKEN = java.util.regex.Pattern.compile("([#.])([\\w-]+)")
     private val VAR = Regex("var\\(\\s*(--[\\w-]+)\\s*(?:,\\s*([^)]*))?\\)")
 
     private class Block(val selector: String, val body: String, val selectorLine: Int, val bodyOffset: Int)
@@ -155,8 +155,9 @@ object CssParser {
         val type = if (typeRaw.isEmpty() || typeRaw == "*") null else typeRaw
         var id: String? = null
         val classes = ArrayList<String>()
-        for (t in TOKEN.findAll(m.groupValues[2])) {
-            if (t.groupValues[1] == "#") id = t.groupValues[2] else classes.add(t.groupValues[2])
+        val tm = TOKEN.matcher(m.groupValues[2])
+        while (tm.find()) {
+            if (tm.group(1) == "#") id = tm.group(2) else classes.add(tm.group(2))
         }
         if (type == null && id == null && classes.isEmpty() && typeRaw != "*") return null
         return Compound(type, id, classes)
@@ -272,7 +273,7 @@ object CssValues {
         "pink" to 0xFFFFC0CB.toInt(),
         "transparent" to 0x00000000,
     )
-    private val NUM = Regex("[-+]?\\d*\\.?\\d+%?")
+    private val NUM = java.util.regex.Pattern.compile("[-+]?\\d*\\.?\\d+%?")
     private val LENGTH = Regex("^(-?\\d*\\.?\\d+)(px|dp|dip|sp|em|pt)?$")
 
     fun splitTop(s: String, sep: Char): List<String> {
@@ -311,7 +312,9 @@ object CssValues {
             }
         }
         if (s.startsWith("rgb") && s.contains('(')) {
-            val nums = NUM.findAll(s.substringAfter('(')).map { it.value }.toList()
+            val nums = ArrayList<String>()
+            val nm = NUM.matcher(s.substringAfter('('))
+            while (nm.find()) nums.add(nm.group())
             if (nums.size < 3) return null
             val c = IntArray(3)
             for (k in 0..2) {

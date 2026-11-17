@@ -22,6 +22,7 @@ import com.aliucord.fragments.SettingsPage
 import com.aliucord.views.Button
 import com.aliucord.views.DangerButton
 import com.discord.views.CheckedSetting
+import java.util.regex.Pattern
 
 /** Editor de CSS com destaque de sintaxe, validação e pré-visualização ao vivo. */
 class CssSettingsPage(private val settings: SettingsAPI) : SettingsPage() {
@@ -241,10 +242,11 @@ class CssSettingsPage(private val settings: SettingsAPI) : SettingsPage() {
         try {
             for (old in text.getSpans(0, text.length, Hl::class.java)) text.removeSpan(old)
             val s = text.toString()
-            fun mark(re: Regex, color: Int) {
-                for (m in re.findAll(s)) {
-                    if (m.range.isEmpty()) continue
-                    text.setSpan(Hl(color), m.range.first, m.range.last + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            fun mark(re: Pattern, color: Int) {
+                val mt = re.matcher(s)
+                while (mt.find()) {
+                    if (mt.end() <= mt.start()) continue
+                    text.setSpan(Hl(color), mt.start(), mt.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
                 }
             }
             // a ordem importa: o que vem depois sobrescreve
@@ -269,10 +271,10 @@ class CssSettingsPage(private val settings: SettingsAPI) : SettingsPage() {
     private fun clipboard(ctx: Context) = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
     private companion object {
-        val RE_VALUE = Regex("(?<=:)[^;{}]*")
-        val RE_SELECTOR = Regex("[^{};]+(?=\\{)")
-        val RE_PROPERTY = Regex("[a-zA-Z-]+(?=\\s*:)")
-        val RE_HEX = Regex("#[0-9a-fA-F]{3,8}\\b")
-        val RE_COMMENT = Regex("/\\*[\\s\\S]*?(\\*/|$)")
+        val RE_VALUE: Pattern = Pattern.compile("(?<=:)[^;{}]*")
+        val RE_SELECTOR: Pattern = Pattern.compile("[^{};]+(?=\\{)")
+        val RE_PROPERTY: Pattern = Pattern.compile("[a-zA-Z-]+(?=\\s*:)")
+        val RE_HEX: Pattern = Pattern.compile("#[0-9a-fA-F]{3,8}\\b")
+        val RE_COMMENT: Pattern = Pattern.compile("/\\*[\\s\\S]*?(\\*/|$)")
     }
 }

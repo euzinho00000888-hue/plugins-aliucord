@@ -21,7 +21,7 @@ class Timestamper : Plugin() {
         val cal = Calendar.getInstance()
         if (s.isEmpty() || s.equals("agora", true) || s.equals("now", true)) return cal
 
-        val rel = Regex("^([+-])(\\d+)\\s*([smhdw])$", RegexOption.IGNORE_CASE).matchEntire(s)
+        val rel = Regex("(?i)^([+-])(\\d+)\\s*([smhdw])$").matchEntire(s)
         if (rel != null) {
             val sign = if (rel.groupValues[1] == "-") -1 else 1
             val n = rel.groupValues[2].toIntOrNull() ?: return null
